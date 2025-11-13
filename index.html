@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>浪漫圣诞树</title>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.132.2/build/three.module.js",
+                "orbitcontrols": "https://unpkg.com/three@0.132.2/examples/jsm/controls/OrbitControls.js"
+            }
+        }
+    </script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #000;
+        }
+        .info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div class="info">Merry Christmas</div>
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'orbitcontrols';
+
+        // 初始化场景、相机、渲染器
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 5;
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // 生成粒子数量
+        const particleCount = 8000;
+        // 粒子几何体
+        const geometry = new THREE.BufferGeometry();
+        // 粒子材质
+        const material = new THREE.PointsMaterial({
+            size: 0.03,
+            color: 0xff69b4
+        });
+
+        // 生成粒子位置
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+
+        // 圣诞树形状参数
+        const baseRadius = 3;
+        const topRadius = 0.5;
+        const height = 5;
+        const segments = 100;
+
+        // 生成圣诞树形状的粒子
+        for (let i = 0; i < particleCount; i++) {
+            const t = i / particleCount;
+            const theta = Math.random() * Math.PI * 2;
+            const radius = baseRadius - (baseRadius - topRadius) * t;
+            const y = height * t - height / 2;
+            const x = radius * Math.cos(theta);
+            const z = radius * Math.sin(theta);
+
+            positions[i * 3] = x;
+            positions[i * 3 + 1] = y;
+            positions[i * 3 + 2] = z;
+
+            // 颜色渐变
+            const color = new THREE.Color(0xff69b4);
+            color.lerp(new THREE.Color(0xffffff), t);
+            colors[i * 3] = color.r;
+            colors[i * 3 + 1] = color.g;
+            colors[i * 3 + 2] = color.b;
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        material.vertexColors = true;
+
+        const particles = new THREE.Points(geometry, material);
+        scene.add(particles);
+
+        // 轨道控制器
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+
+        // 窗口大小变化处理
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // 动画循环
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+    </script>
+</body>
+</html>
